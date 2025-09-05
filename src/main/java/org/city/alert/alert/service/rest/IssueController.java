@@ -33,16 +33,19 @@ public class IssueController {
             @RequestParam MultipartFile image
     ) throws IOException {
 
-        // get raw bytes
-        byte[] imageBytes = image.getBytes();
 
         var issue = Issue.builder()
                 .latitude(latitude)
                 .longitude(longitude)
-                .photo(imageBytes)
                 .title(title)
                 .description(description)
                 .build();
+
+        // get raw bytes
+        if (!image.isEmpty()) {
+            byte[] imageBytes = image.getBytes();
+            issue.setPhoto(imageBytes);
+        }
 
         var response = service.reportIssue(issue);
 
