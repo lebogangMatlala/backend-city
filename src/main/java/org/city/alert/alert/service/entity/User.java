@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.city.alert.alert.service.enums.Department;
+import org.city.alert.alert.service.enums.UserRoles;
 
 @Data
 @Entity
@@ -23,5 +25,9 @@ public class User {
     private String phone;
     private String username;
     private String password;
-    private String role; // CITIZEN, MUNICIPAL_EMPLOYEE, ADMIN
+    @Enumerated(EnumType.STRING)
+    private UserRoles role; // CITIZEN, TECHNICIAN, ADMIN
+    @Enumerated(EnumType.STRING)   // saves enum as text in DB
+    private Department department; //Potholes, Electric, Water
+    private Integer workloadCount = 0; // Optional: track tasks assigned
 }

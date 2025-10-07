@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/issues/**").permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()  // ✅ allow Swagger
                         .anyRequest().authenticated()
                 )

@@ -1,28 +1,30 @@
 package org.city.alert.alert.service.rest;
 
-import org.city.alert.alert.service.dto.IssueResponse;
+import org.city.alert.alert.service.dto.AssignTechnicianDTO;
 import org.city.alert.alert.service.dto.UpdateIssueDTO;
 import org.city.alert.alert.service.entity.Issue;
+import org.city.alert.alert.service.entity.IssueImage;
 import org.city.alert.alert.service.error.ResourceNotFoundException;
 import org.city.alert.alert.service.service.IssueService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/issues")
 public class IssueController {
 
-    @Autowired
-    private IssueService service;
+    private final IssueService service;
+
+    public IssueController(IssueService service) {
+        this.service = service;
+    }
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<Issue> reportIssue(
@@ -30,27 +32,44 @@ public class IssueController {
             @RequestParam String description,
             @RequestParam Double latitude,
             @RequestParam Double longitude,
-            @RequestParam MultipartFile image
+            @RequestParam(required = false) MultipartFile image
     ) throws IOException {
 
-
-        var issue = Issue.builder()
+        Issue issue = Issue.builder()
                 .latitude(latitude)
                 .longitude(longitude)
                 .title(title)
                 .description(description)
                 .build();
 
-        // get raw bytes
-        if (!image.isEmpty()) {
-            byte[] imageBytes = image.getBytes();
-            issue.setPhoto(imageBytes);
+        // 🔒 Safety check
+        if (issue.getImages() == null) {
+            issue.setImages(new ArrayList<>());
         }
 
-        var response = service.reportIssue(issue);
+        if (image != null && !image.isEmpty()) {
+            byte[] imageBytes = image.getBytes();
 
+            // Log details about the image
+            System.out.println("Uploading image: " + image.getOriginalFilename());
+            System.out.println("Image content type: " + image.getContentType());
+            System.out.println("Image size (bytes): " + imageBytes.length);
+
+            IssueImage issueImage = IssueImage.builder()
+                    .photo(imageBytes)
+                    .photoName(image.getOriginalFilename())
+                    .photoType(image.getContentType())
+                    .issue(issue)
+                    .build();
+
+            issue.getImages().add(issueImage);
+        }
+
+        Issue response = service.reportIssue(issue);
         return ResponseEntity.ok(response);
     }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Issue> getIssue(@PathVariable Long id) {
@@ -62,19 +81,19 @@ public class IssueController {
     }
 
     @GetMapping("/worker/{id}")
-    public ResponseEntity<List<Issue>> getIssueByWorker(@PathVariable Long id) {
-        var issues = service.getByWorker(id);
-
-        if (issues == null) {
-            throw new ResourceNotFoundException("Issue with ID " + id + " not found");
+    public ResponseEntity<Optional<List<Issue>>> getIssuesByWorker(@PathVariable Long id) {
+        Optional<List<Issue>> issues = service.getByWorker(id);
+        if (issues.isEmpty()) {
+            throw new ResourceNotFoundException("No issues found for worker ID " + id);
         }
-
         return ResponseEntity.ok(issues);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Issue> updateIssue(@PathVariable Long id,
-                                                     @RequestBody UpdateIssueDTO updateIssueDTO) {
+    public ResponseEntity<Issue> updateIssue(
+            @PathVariable Long id,
+            @RequestBody UpdateIssueDTO updateIssueDTO
+    ) {
         Issue issue = service.updateIssue(id, updateIssueDTO);
         if (issue == null) {
             throw new ResourceNotFoundException("Issue with ID " + id + " not found");
@@ -82,8 +101,22 @@ public class IssueController {
         return ResponseEntity.ok(issue);
     }
 
+    @GetMapping("/reported-by/{userId}")
+    public ResponseEntity<List<Issue>> getIssuesByReporter(@PathVariable Long userId) {
+
+        List<Issue> issues = service.getIssuesReportedByUser(userId);
+        return ResponseEntity.ok(issues);
+    }
+
+    // Manual assignment by admin
+    @PostMapping("/assign")
+    public ResponseEntity<Issue> assignManually(@RequestBody AssignTechnicianDTO dto) {
+        Issue assigned = service.assignTechnicianManually(dto);
+        return ResponseEntity.ok(assigned);
+    }
+
     @GetMapping
     public ResponseEntity<List<Issue>> getAllIssues() {
-        return ResponseEntity.ok(new ArrayList<>(service.getAllIssues()));
+        return ResponseEntity.ok(service.getAllIssues());
     }
 }

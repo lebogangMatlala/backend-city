@@ -1,4 +1,4 @@
-package org.city.alert.alert.service.service;
+package org.city.alert.alert.service.service.imple;
 
 import org.springframework.stereotype.Service;
 
@@ -7,7 +7,7 @@ public class AIService {
 
     public String predictCategory(String description) {
         if(description.toLowerCase().contains("pothole")) {
-            return "POTHOLE";
+            return "ROAD";
         }else if (description.toLowerCase().contains("sewer")){
             return "PLUMBING";
         }else if (description.toLowerCase().contains("strike")){

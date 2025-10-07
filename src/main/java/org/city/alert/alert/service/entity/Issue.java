@@ -1,21 +1,21 @@
 package org.city.alert.alert.service.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
 @Builder
-@Table(name = "issues")
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "issues")
 public class Issue {
 
     @Id
@@ -25,26 +25,12 @@ public class Issue {
     private String title;
     private String description;
     private String status; // OPEN, IN_PROGRESS, RESOLVED
-
     private Double latitude;
     private Double longitude;
 
-    // Multimedia links (S3, Local, or BLOB ids)
-    @Lob
-    @Column(columnDefinition = "BYTEA")
-    private byte[] photo;
-
-    @Lob
-    @Column(columnDefinition = "BYTEA")
-    private byte[] video;
-
-    private Long workerId;
-
-    // (Optional) AI-predicted category
-    private String category;
-
-    private String comments;
-
+    private Long workerId;   // worker assigned
+    private String category; // AI-predicted category
+    private String rating;
     private Integer priority;
 
     @CreationTimestamp
@@ -52,4 +38,19 @@ public class Issue {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default   // <-- REQUIRED with Lombok Builder
+    @JsonManagedReference
+    private List<IssueImage> images = new ArrayList<>();
+
+    private Long userId;
+
+    // -----------------------------
+    // STATUS HISTORY
+    // -----------------------------
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    @JsonManagedReference
+    private List<IssueStatusHistory> statusHistory = new ArrayList<>();
 }
