@@ -43,7 +43,7 @@ public class Issue {
     @Builder.Default   // <-- REQUIRED with Lombok Builder
     @JsonManagedReference
     private List<IssueImage> images = new ArrayList<>();
-
+    private String comments;
     private Long userId;
 
     // -----------------------------
