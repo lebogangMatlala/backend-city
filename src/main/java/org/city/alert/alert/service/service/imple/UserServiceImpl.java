@@ -19,19 +19,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
+
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already in use");
+        }
+
         user.setPassword(encoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
     @Override
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public Optional<User> findByEmail(String email) {
+
+        return userRepository.findByEmail(email);
     }
 
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+
 
     @Override
     public User updateUser(Long id, User updatedUser) {
@@ -40,14 +48,27 @@ public class UserServiceImpl implements UserService {
                     existing.setName(updatedUser.getName());
                     existing.setSurname(updatedUser.getSurname());
                     existing.setRole(updatedUser.getRole());
+
+                    // Only update password if provided
+                    if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+                        existing.setPassword(encoder.encode(updatedUser.getPassword()));
+                    }
+
                     return userRepository.save(existing);
                 })
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+
     @Override
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
 }

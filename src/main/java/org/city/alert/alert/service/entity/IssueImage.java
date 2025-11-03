@@ -34,6 +34,4 @@ public class IssueImage {
     @JsonBackReference
     private Issue issue;
 
-
-
 }

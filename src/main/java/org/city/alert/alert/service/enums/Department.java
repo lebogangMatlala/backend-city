@@ -6,5 +6,6 @@ public enum Department {
     ELECTRIC,   // Electricity & Energy (cable theft, streetlights)
     FIRE,       // Fire & Emergency Services
     WASTE,      // Waste Management
-    GENERAL     // General Maintenance
+    GENERAL ,
+    UNASSIGNED// General Maintenance
 }

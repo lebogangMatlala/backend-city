@@ -31,11 +31,11 @@ public class JwtFilter extends OncePerRequestFilter  {
             String token = header.substring(7);
             try {
                 Claims claims = jwtUtil.validateToken(token).getBody();
-                String username = claims.getSubject();
+                String email = claims.getSubject();
                 String role = claims.get("role", String.class);
 
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");

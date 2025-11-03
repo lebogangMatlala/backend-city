@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/issues/**").permitAll()
+                        .requestMatchers("/api/reports/**").permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()  // ✅ allow Swagger
                         .anyRequest().authenticated()
                 )

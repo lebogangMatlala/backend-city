@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -32,6 +30,7 @@ public class IssueController {
             @RequestParam String description,
             @RequestParam Double latitude,
             @RequestParam Double longitude,
+            @RequestParam Long userId,
             @RequestParam(required = false) MultipartFile image
     ) throws IOException {
 
@@ -40,6 +39,7 @@ public class IssueController {
                 .longitude(longitude)
                 .title(title)
                 .description(description)
+                .userId(userId)
                 .build();
 
         // 🔒 Safety check
@@ -81,10 +81,19 @@ public class IssueController {
     }
 
     @GetMapping("/worker/{id}")
-    public ResponseEntity<Optional<List<Issue>>> getIssuesByWorker(@PathVariable Long id) {
-        Optional<List<Issue>> issues = service.getByWorker(id);
+    public ResponseEntity<List<Issue>> getIssuesByWorker(@PathVariable Long id) {
+        List<Issue> issues = service.getByWorker(id);
         if (issues.isEmpty()) {
             throw new ResourceNotFoundException("No issues found for worker ID " + id);
+        }
+        return ResponseEntity.ok(issues);
+    }
+
+    @GetMapping("/user/getIssuesByUser/{id}")
+    public ResponseEntity<List<Issue>> getIssuesByUser(@PathVariable Long id) {
+        List<Issue> issues = service.getByUser(id);
+        if (issues.isEmpty()) {
+            throw new ResourceNotFoundException("No issues found for user ID " + id);
         }
         return ResponseEntity.ok(issues);
     }
@@ -115,8 +124,23 @@ public class IssueController {
         return ResponseEntity.ok(assigned);
     }
 
-    @GetMapping
+    @GetMapping("/getAllIssues")
     public ResponseEntity<List<Issue>> getAllIssues() {
         return ResponseEntity.ok(service.getAllIssues());
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Issue> updateIssue(@PathVariable Long id, @RequestBody Issue updatedIssue) {
+        return ResponseEntity.ok(service.updateIssue(id, updatedIssue));
+    }
+    @GetMapping("/worker/{id}/summary")
+    public ResponseEntity<Map<String, Object>> getWorkerSummary(@PathVariable Long id) {
+        Map<String, Object> summary = service.getWorkerSummary(id);
+        return ResponseEntity.ok(summary);
+    }
+
+    @DeleteMapping("/softDelete/{id}")
+    public ResponseEntity<String> softDeleteIssue(@PathVariable Long id) {
+        return ResponseEntity.ok(service.softDeleteIssue(id));
     }
 }

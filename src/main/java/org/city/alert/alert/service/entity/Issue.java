@@ -3,6 +3,7 @@ package org.city.alert.alert.service.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.city.alert.alert.service.enums.Status;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -24,7 +25,8 @@ public class Issue {
 
     private String title;
     private String description;
-    private String status; // OPEN, IN_PROGRESS, RESOLVED
+    @Enumerated(EnumType.STRING)
+    private Status status; // OPEN, IN_PROGRESS, RESOLVED
     private Double latitude;
     private Double longitude;
 
@@ -53,4 +55,7 @@ public class Issue {
     @Builder.Default
     @JsonManagedReference
     private List<IssueStatusHistory> statusHistory = new ArrayList<>();
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
 }
